@@ -36,7 +36,7 @@
         <div class="tour-price-card">
           <div class="tour-price-copy">
             <span class="eyebrow">Tour price</span>
-            <h2 id="tour-price-title">Rp800.000 <span>/ tour</span></h2>
+            <h2 id="tour-price-title"><span id="tour-price-display">Rp800.000</span> <span>/ tour</span></h2>
             <p>Enter any Rupiah amount to see estimated conversions in all four currencies.</p>
           </div>
           <div class="currency-calculator">
@@ -112,9 +112,12 @@
     <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3a12.7 12.7 0 0 0-10.9 19.2L3.5 29l7-1.8A12.7 12.7 0 1 0 16 3Zm0 23.1c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.1 1.1 1.1-4-.3-.4A10.4 10.4 0 1 1 16 26.1Zm5.7-7.8c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2s-.8 1-.9 1.2-.3.2-.6.1a8.5 8.5 0 0 1-2.5-1.5 9.3 9.3 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-1-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4s-1.1 1.1-1.1 2.6 1.1 3 1.2 3.2c.2.2 2.2 3.4 5.3 4.7.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.6-.1 1.8-.7 2.1-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
     <span>Chat on WhatsApp</span>
   </a>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script>
     const indicativeRates = { USD: 0.000061, AUD: 0.000094, SGD: 0.000082, EUR: 0.000056 };
     const idrAmount = document.getElementById('idr-amount');
+    const tourPriceDisplay = document.getElementById('tour-price-display');
     const currencyOutputs = {
       USD: document.getElementById('result-usd'),
       AUD: document.getElementById('result-aud'),
@@ -138,6 +141,24 @@
 
     idrAmount.addEventListener('input', updateCurrencyEstimates);
     updateCurrencyEstimates();
+
+    if (window.SUPABASE_URL && !window.SUPABASE_URL.includes('YOUR_') && window.SUPABASE_ANON_KEY && !window.SUPABASE_ANON_KEY.includes('YOUR_')) {
+      const supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      supabaseClient
+        .from('tour_prices')
+        .select('amount_idr')
+        .eq('id', 'ubud-cultural-tour')
+        .single()
+        .then(({ data, error }) => {
+          if (error || !data) return;
+          const price = Number(data.amount_idr);
+          idrAmount.value = price;
+          tourPriceDisplay.textContent = new Intl.NumberFormat('id-ID', {
+            style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+          }).format(price);
+          updateCurrencyEstimates();
+        });
+    }
   </script>
 </body>
 </html>
