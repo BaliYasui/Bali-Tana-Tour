@@ -15,8 +15,8 @@
     .admin-card h1{font:500 clamp(34px,6vw,48px)/1.1 var(--serif);color:var(--forest);margin:0 0 12px}
     .admin-card>p{font-size:13px;color:#70776f;margin:0 0 26px}
     .admin-card label{display:block;font-size:11px;font-weight:700;color:#38443a;margin:0 0 16px}
-    .admin-card input{display:block;width:100%;margin-top:7px;padding:13px;border:1px solid #e0dfd5;background:#fff;font:inherit;font-size:14px}
-    .admin-card input:focus{outline:2px solid var(--green);outline-offset:2px}
+    .admin-card input,.admin-card select{display:block;width:100%;margin-top:7px;padding:13px;border:1px solid #e0dfd5;background:#fff;font:inherit;font-size:14px}
+    .admin-card input:focus,.admin-card select:focus{outline:2px solid var(--green);outline-offset:2px}
     .admin-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
     .admin-status{min-height:24px;margin:16px 0 0!important;color:var(--forest)!important;font-size:12px!important}
     .admin-back{display:inline-block;margin-bottom:24px;color:var(--forest);font-size:12px;font-weight:700}
@@ -39,6 +39,7 @@
         </form>
 
         <form id="price-form" class="admin-hidden">
+          <label>Pilih tur<select id="tour-select" required><option value="ubud-cultural-tour">Ubud Cultural Tour</option><option value="beautiful-temple-hidden-hill">Beautiful Temple and Hidden Hill</option></select></label>
           <label>Harga tur (Rupiah)<input id="price-input" type="number" min="0" step="1000" required></label>
           <div class="admin-actions">
             <button class="button button-green" type="submit">Simpan harga <span>↗</span></button>
