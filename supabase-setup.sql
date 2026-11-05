@@ -6,8 +6,12 @@ create table if not exists public.tour_prices (
 );
 
 insert into public.tour_prices (id, amount_idr)
-values ('ubud-cultural-tour', 800000)
-on conflict (id) do nothing;
+values
+  ('ubud-cultural-tour', 800000),
+  ('beautiful-temple-hidden-hill', 1000000)
+on conflict (id) do update
+set amount_idr = excluded.amount_idr,
+    updated_at = now();
 
 alter table public.tour_prices enable row level security;
 
