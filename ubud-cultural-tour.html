@@ -36,19 +36,17 @@
         <div class="tour-price-card">
           <div class="tour-price-copy">
             <span class="eyebrow">Tour price</span>
-            <h2 id="tour-price-title"><span id="tour-price-display">Rp800.000</span> <span>/ tour</span></h2>
-            <p>Enter any Rupiah amount to see estimated conversions in all four currencies.</p>
+            <h2 id="tour-price-title"><span id="tour-price-display">Rp800.000</span> <span>/ car</span></h2>
+            <p>Price is per car, using a new Toyota Innova Reborn. Estimated conversions are shown below.</p>
           </div>
           <div class="currency-calculator">
-            <label for="idr-amount">Amount in Rupiah (IDR)</label>
-            <input id="idr-amount" type="number" inputmode="numeric" min="0" step="1000" value="800000" aria-describedby="currency-note">
             <div class="currency-results" aria-live="polite" aria-label="Estimated currency conversions">
               <div><span>US Dollar (USD)</span><output id="result-usd">≈ $48.80</output></div>
               <div><span>Australian Dollar (AUD)</span><output id="result-aud">≈ A$75.20</output></div>
               <div><span>Singapore Dollar (SGD)</span><output id="result-sgd">≈ S$65.60</output></div>
               <div><span>Euro (EUR)</span><output id="result-eur">≈ €44.80</output></div>
             </div>
-            <p id="currency-note">Estimates use indicative rates and update as you type. Exchange rates change; the tour price is Rp800.000.</p>
+            <p id="currency-note">Estimates use indicative rates and are based on the tour price shown. Exchange rates may change.</p>
           </div>
         </div>
       </div>
@@ -86,7 +84,7 @@
               <h3>Included</h3>
               <ul>
                 <li>English-speaking local driver</li>
-                <li>New, comfortable Toyota Innova Reborn</li>
+                <li>Our car: a new Toyota Innova Reborn</li>
                 <li>Vehicle fuel</li>
                 <li>Driver's lunch</li>
                 <li>Parking fees</li>
@@ -116,7 +114,7 @@
   <script src="supabase-config.js"></script>
   <script>
     const indicativeRates = { USD: 0.000061, AUD: 0.000094, SGD: 0.000082, EUR: 0.000056 };
-    const idrAmount = document.getElementById('idr-amount');
+    let tourPrice = 800000;
     const tourPriceDisplay = document.getElementById('tour-price-display');
     const currencyOutputs = {
       USD: document.getElementById('result-usd'),
@@ -126,8 +124,8 @@
     };
 
     function updateCurrencyEstimates() {
-      const amount = Number(idrAmount.value) || 0;
       Object.entries(indicativeRates).forEach(([currency, rate]) => {
+        const amount = tourPrice;
         const estimate = amount * rate;
         const formatted = new Intl.NumberFormat('en', {
           style: 'currency',
@@ -139,7 +137,6 @@
       });
     }
 
-    idrAmount.addEventListener('input', updateCurrencyEstimates);
     updateCurrencyEstimates();
 
     if (window.SUPABASE_URL && !window.SUPABASE_URL.includes('YOUR_') && window.SUPABASE_ANON_KEY && !window.SUPABASE_ANON_KEY.includes('YOUR_')) {
@@ -152,7 +149,7 @@
         .then(({ data, error }) => {
           if (error || !data) return;
           const price = Number(data.amount_idr);
-          idrAmount.value = price;
+          tourPrice = price;
           tourPriceDisplay.textContent = new Intl.NumberFormat('id-ID', {
             style: 'currency', currency: 'IDR', maximumFractionDigits: 0
           }).format(price);
