@@ -24,5 +24,5 @@ drop policy if exists "Only designated admin can update prices" on public.tour_p
 create policy "Only designated admin can update prices"
 on public.tour_prices for update
 to authenticated
-using (auth.uid() = 'REPLACE_WITH_ADMIN_USER_UUID'::uuid)
-with check (auth.uid() = 'REPLACE_WITH_ADMIN_USER_UUID'::uuid);
+using (auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid)
+with check (auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid);
