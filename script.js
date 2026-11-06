@@ -17,6 +17,53 @@ const driverObserver = new IntersectionObserver((entries, observer) => {
 }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
 driverObserver.observe(driverIntro);
 
+const driverSlides = [...document.querySelectorAll('.driver-slide')];
+const driverSlideButtons = [...document.querySelectorAll('.driver-slider-dots button')];
+let activeDriverSlide = driverSlides.findIndex((slide) => slide.classList.contains('is-active'));
+
+async function loadDriverPhotos() {
+  if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase) return;
+  const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  const { data, error } = await client.from('site_images').select('id, image_url');
+  if (error) return;
+
+  const images = new Map(data.map((item) => [item.id, item.image_url]));
+  driverSlides.forEach((slide, index) => {
+    const imageUrl = images.get(`driver-photo-${index + 1}`);
+    if (imageUrl) slide.src = imageUrl;
+  });
+}
+
+loadDriverPhotos();
+
+function showDriverSlide(index) {
+  activeDriverSlide = index;
+  driverSlides.forEach((slide, slideIndex) => {
+    const isActive = slideIndex === index;
+    slide.classList.toggle('is-active', isActive);
+    slide.setAttribute('aria-hidden', String(!isActive));
+    driverSlideButtons[slideIndex].classList.toggle('is-active', isActive);
+    driverSlideButtons[slideIndex].setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+driverSlideButtons.forEach((button, index) => {
+  button.addEventListener('click', () => {
+    showDriverSlide(index);
+    startDriverSlideTimer();
+  });
+});
+
+let driverSlideTimer;
+function startDriverSlideTimer() {
+  clearInterval(driverSlideTimer);
+  if (driverSlides.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  driverSlideTimer = setInterval(() => {
+    showDriverSlide((activeDriverSlide + 1) % driverSlides.length);
+  }, 4000);
+}
+startDriverSlideTimer();
+
 menuToggle.addEventListener('click', () => {
   const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
   menuToggle.setAttribute('aria-expanded', String(!isOpen));
