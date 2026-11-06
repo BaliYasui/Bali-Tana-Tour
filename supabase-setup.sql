@@ -9,7 +9,8 @@ insert into public.tour_prices (id, amount_idr)
 values
   ('ubud-cultural-tour', 800000),
   ('beautiful-temple-hidden-hill', 1000000),
-  ('east-bali-tour', 1000000)
+  ('east-bali-tour', 1000000),
+  ('mount-batur-volcano', 850000)
 on conflict (id) do nothing;
 
 alter table public.tour_prices enable row level security;
