@@ -4,19 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#164b38" />
-  <title>Admin Harga | Taru Bali Driver</title>
+  <title>Admin Harga | Bali Tana Tour</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <style>
     .admin-page{min-height:100vh;padding:110px 0 70px;background:var(--cream)}
-    .admin-card{max-width:620px;margin:auto;padding:clamp(24px,5vw,42px);background:#fff;box-shadow:0 8px 28px #2733290a}
+    .admin-card{max-width:760px;margin:auto;padding:clamp(24px,5vw,42px);background:#fff;box-shadow:0 8px 28px #2733290a}
     .admin-card h1{font:500 clamp(34px,6vw,48px)/1.1 var(--serif);color:var(--forest);margin:0 0 12px}
     .admin-card>p{font-size:13px;color:#70776f;margin:0 0 26px}
     .admin-card label{display:block;font-size:11px;font-weight:700;color:#38443a;margin:0 0 16px}
-    .admin-card input,.admin-card select{display:block;width:100%;margin-top:7px;padding:13px;border:1px solid #e0dfd5;background:#fff;font:inherit;font-size:14px}
-    .admin-card input:focus,.admin-card select:focus{outline:2px solid var(--green);outline-offset:2px}
+    .admin-card input{display:block;width:100%;margin-top:7px;padding:13px;border:1px solid #e0dfd5;background:#fff;font:inherit;font-size:14px}
+    .admin-card input:focus{outline:2px solid var(--green);outline-offset:2px}
+    .admin-price-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0 20px}
+    .admin-price-list label{font-size:12px}
+    .admin-price-list input{font-size:15px}
     .admin-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
     .admin-status{min-height:24px;margin:16px 0 0!important;color:var(--forest)!important;font-size:12px!important}
     .admin-back{display:inline-block;margin-bottom:24px;color:var(--forest);font-size:12px;font-weight:700}
@@ -28,9 +31,9 @@
     <div class="wrap">
       <a class="admin-back" href="index.html">← Kembali ke website</a>
       <section class="admin-card" aria-labelledby="admin-title">
-        <span class="eyebrow">Taru Bali Driver</span>
+        <span class="eyebrow">Bali Tana Tour</span>
         <h1 id="admin-title">Admin harga tur</h1>
-        <p>Masuk menggunakan akun admin Supabase untuk memperbarui harga Ubud Cultural Tour.</p>
+        <p>Masuk menggunakan akun admin Supabase untuk memperbarui harga tur, termasuk Mount Batur Vulcano.</p>
 
         <form id="login-form">
           <label>Email admin<input name="email" type="email" autocomplete="username" required></label>
@@ -39,10 +42,14 @@
         </form>
 
         <form id="price-form" class="admin-hidden">
-          <label>Pilih tur<select id="tour-select" required><option value="ubud-cultural-tour">Ubud Cultural Tour</option><option value="beautiful-temple-hidden-hill">Beautiful Temple and Hidden Hill</option><option value="east-bali-tour">East Bali Tour</option></select></label>
-          <label>Harga tur (Rupiah)<input id="price-input" type="number" min="0" step="1000" required></label>
+          <div class="admin-price-list">
+            <label>Ubud Cultural Tour (Rupiah)<input id="price-ubud-cultural-tour" data-tour-id="ubud-cultural-tour" type="number" min="0" step="1000" required></label>
+            <label>Beautiful Temple and Hidden Hill (Rupiah)<input id="price-beautiful-temple-hidden-hill" data-tour-id="beautiful-temple-hidden-hill" type="number" min="0" step="1000" required></label>
+            <label>East Bali Tour (Rupiah)<input id="price-east-bali-tour" data-tour-id="east-bali-tour" type="number" min="0" step="1000" required></label>
+            <label>Mount Batur Vulcano (Rupiah)<input id="price-mount-batur-volcano" data-tour-id="mount-batur-volcano" type="number" min="0" step="1000" required></label>
+          </div>
           <div class="admin-actions">
-            <button class="button button-green" type="submit">Simpan harga <span>↗</span></button>
+            <button class="button button-green" type="submit">Simpan semua harga <span>↗</span></button>
             <button class="button" id="logout-button" type="button">Keluar</button>
           </div>
         </form>
