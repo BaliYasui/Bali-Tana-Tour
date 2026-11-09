@@ -237,13 +237,19 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
 
   galleryForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const imageUrl = document.getElementById('gallery-url').value.trim();
+    const file = document.getElementById('gallery-file').files[0];
     const caption = document.getElementById('gallery-caption').value.trim();
-    if (!imageUrl.startsWith('https://')) {
-      showStatus('Gunakan tautan foto yang diawali https://.');
+    if (!file) {
+      showStatus('Pilih gambar terlebih dahulu.');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
+      showStatus('Pilih gambar JPG, PNG, atau WebP dengan ukuran maksimal 10 MB.');
       return;
     }
 
+    const submitButton = galleryForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
     try {
       const { data, error } = await supabaseClient
         .from('gallery_photos')
@@ -256,15 +262,26 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
       const usedPositions = new Set(data.map((photo) => photo.position));
       const position = Array.from({ length: 20 }, (_, index) => index + 1)
         .find((number) => !usedPositions.has(number));
+      const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
+      const filePath = `gallery/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      showStatus('Mengunggah gambar galeri…');
+      const { error: uploadError } = await supabaseClient.storage
+        .from('site-images')
+        .upload(filePath, file, { contentType: file.type, cacheControl: '3600' });
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabaseClient.storage.from('site-images').getPublicUrl(filePath);
       const { error: insertError } = await supabaseClient
         .from('gallery_photos')
-        .insert({ image_url: imageUrl, caption, position });
+        .insert({ image_url: publicUrlData.publicUrl, caption, position });
       if (insertError) throw insertError;
       galleryForm.reset();
       await loadGallery();
-      showStatus('Foto berhasil ditambahkan ke galeri.');
+      showStatus('Gambar berhasil diunggah dan ditambahkan ke galeri.');
     } catch (error) {
-      showStatus(`Gagal menambahkan foto: ${error.message}`);
+      showStatus(`Gagal mengunggah gambar galeri: ${error.message}`);
+    } finally {
+      submitButton.disabled = false;
     }
   });
 
