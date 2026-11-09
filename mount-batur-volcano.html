@@ -17,8 +17,22 @@
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="36" cy="10" r="4.5" fill="#e8b83f"/><path d="M24 4 20.5 10h7L24 4Zm-8 8h16l3 4H13l3-4Zm-5 7h26l3 5H8l3-5Zm-4 8h34l3 5H4l3-5Zm5 7h24v9H12z" fill="currentColor"/><path d="M19 34h10v9H19z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 44h42" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
       <span class="brand-name">Bali Tana <span>Tour</span></span>
     </a>
-    <a class="detail-back" href="index.html#tours">← All Bali tours</a>
+    <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation"><span></span><span></span></button>
+    <nav class="main-nav" id="main-navigation" aria-label="Main navigation">
+      <a href="index.html#top">Home</a>
+      <a href="index.html#about">About</a>
+      <div class="nav-trip-menu"><button class="nav-trip-toggle" type="button" aria-expanded="false" aria-controls="page-trip-options">Bali tours <span aria-hidden="true">⌄</span></button><div class="nav-trip-options" id="page-trip-options"><a href="ubud-cultural-tour.html">Ubud Cultural Tour</a><a href="beautiful-temple-hidden-hill.html">Beautiful Temple and Hidden Hill</a><a href="east-bali-tour.html">East Bali Tour</a><a href="mount-batur-volcano.html">Mount Batur Volcano</a><a href="south-bali-uluwatu.html">South Bali &amp; Uluwatu</a></div></div>
+      <a href="bali-adventure.html">Adventure</a><a href="index.html#destinations">Destinations</a><a href="index.html#guide">Travel guide</a><a href="index.html#gallery">Gallery</a><a href="reviews.html">Reviews</a><a href="index.html#contact">Contact</a>
+      <a class="nav-cta" href="index.html#contact">Plan your trip <span aria-hidden="true">↗</span></a>
+    </nav>
+    <details class="trip-menu">
+      <summary class="detail-back">Choose your trip <span aria-hidden="true">⌄</span></summary>
+      <nav class="trip-menu-options" aria-label="Tour choices">
+        <a href="ubud-cultural-tour.html">Ubud Cultural Tour</a><a href="beautiful-temple-hidden-hill.html">Beautiful Temple and Hidden Hill</a><a href="east-bali-tour.html">East Bali Tour</a><a href="mount-batur-volcano.html">Mount Batur Vulcano</a><a href="south-bali-uluwatu.html">South Bali &amp; Uluwatu</a><a href="bali-adventure.html">Bali Adventure</a>
+      </nav>
+    </details>
   </header>
+  <script src="navigation.js"></script>
 
   <main>
     <section class="tour-detail-hero">
@@ -74,15 +88,26 @@
           </article>
           <article class="itinerary-stop">
             <span class="itinerary-number">03</span>
-            <div><span class="eyebrow">Optional · Hot spring</span><h3>Hot Spring Experience</h3><p>If you would like, enjoy a relaxing soak at a hot spring in the volcanic area, with beautiful views of the surrounding landscape.</p><img src="https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&w=900&q=85" alt="Scenic natural landscape in Bali" loading="lazy" decoding="async"></div>
+            <div><span class="eyebrow">Optional · Hot spring</span><h3>Natural Hot Spring</h3><p>If you would like, enjoy a relaxing soak at a hot spring in the volcanic area, with beautiful views of the surrounding landscape.</p><img src="https://travels.id/wp-content/uploads/2024/08/Batur-Natural-Hot-Spring-Kintamani-Bali.webp" alt="Natural hot spring in Kintamani, Bali" loading="lazy" decoding="async"></div>
           </article>
           <article class="itinerary-stop">
             <span class="itinerary-number">04</span>
-            <div><span class="eyebrow">Local flavors · Kintamani</span><h3>Coffee Plantation</h3><p>On the way back toward your hotel, stop at a coffee plantation or Luwak coffee experience. Kintamani is well known for its coffee-growing areas.</p><img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=900&q=85" alt="Coffee beans at a plantation" loading="lazy" decoding="async"></div>
+            <div><span class="eyebrow">Local flavors · Kintamani</span><h3>Coffee Plantation</h3><p>On the way back toward your hotel, stop at a coffee plantation or Luwak coffee experience. Kintamani is well known for its coffee-growing areas.</p><img src="https://fastboatbaligilitrawangan.com/wp-content/uploads/2025/07/Agrowisata-Kopi-Luwak-di-Bali.webp" alt="Luwak coffee plantation in Bali" loading="lazy" decoding="async"></div>
           </article>
           <article class="itinerary-stop">
             <span class="itinerary-number">05</span>
-            <div><span class="eyebrow">Choose your final stop</span><h3>Tirta Empul Temple or a Waterfall</h3><p>To finish the day on your return toward the hotel, choose either Tirta Empul Temple or a waterfall, according to your interests.</p><img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjMmYnZtDEoNLgk_vPLuk2v8UcI2WcMlhbbHf3YNdqKgbpTFxGXEGTwJ7gsBXIAjCjfL5LJ8RZ78tNeqlAfyC6bOlBqI9w4vY7iy3a1CDi2PQ9mybcLiULd9Rt75H7EGjSWMEujbGLVMUhzn8pxqGgAll0RfMAx3BQPaHhC6K1xqLbjY36Qe9-VqzOoQkc/s320/13763.jpg" alt="Tirta Empul sacred water temple" loading="lazy" decoding="async"></div>
+            <div><span class="eyebrow">Choose your final stop</span><h3>Tirta Empul Temple or a Waterfall</h3><p>To finish the day on your return toward the hotel, choose either Tirta Empul Temple or a waterfall, according to your interests.</p><div class="temple-waterfall-slider" aria-label="Temple and waterfall photos" aria-roledescription="carousel">
+              <div class="temple-waterfall-slides">
+                <img class="temple-waterfall-slide is-active" src="https://images.baliuntold.com/cdn-cgi/image/width=1200,quality=75,format=auto/Tegenungan-Waterfall-2.jpg" alt="Tegenungan Waterfall in Bali" loading="lazy" decoding="async">
+                <img class="temple-waterfall-slide" src="https://atixbali.oss-ap-southeast-5.aliyuncs.com/de6cf710f5a33c515deba55a7e6dbf62.jpeg" alt="Temple or waterfall in Bali" loading="lazy" decoding="async">
+              </div>
+              <button class="temple-waterfall-arrow temple-waterfall-prev" type="button" aria-label="Previous photo">‹</button>
+              <button class="temple-waterfall-arrow temple-waterfall-next" type="button" aria-label="Next photo">›</button>
+              <div class="temple-waterfall-dots" aria-label="Choose a photo">
+                <button class="is-active" type="button" aria-label="Show photo 1" aria-current="true"></button>
+                <button type="button" aria-label="Show photo 2"></button>
+              </div>
+            </div></div>
           </article>
         </div>
         <nav class="tour-choice-nav" aria-label="Choose another Bali tour">
@@ -93,6 +118,8 @@
               <a href="beautiful-temple-hidden-hill.html">Beautiful Temple and Hidden Hill <span>View trip ↗</span></a>
               <a href="east-bali-tour.html">East Bali Tour <span>View trip ↗</span></a>
               <a href="mount-batur-volcano.html" aria-current="page">Mount Batur Vulcano <span>Current trip</span></a>
+              <a href="south-bali-uluwatu.html">South Bali &amp; Uluwatu <span>View trip ↗</span></a>
+              <a href="bali-adventure.html">Bali Adventure <span>View trip ↗</span></a>
             </div>
           </div>
         </nav>
@@ -142,6 +169,52 @@
           }).format(tourPrice);
           updateCurrencyEstimates();
         });
+    }
+  </script>
+  <script>
+    const photoSlider = document.querySelector('.temple-waterfall-slider');
+    if (photoSlider) {
+      const slides = [...photoSlider.querySelectorAll('.temple-waterfall-slide')];
+      const dots = [...photoSlider.querySelectorAll('.temple-waterfall-dots button')];
+      let activePhoto = 0;
+      let sliderTimer;
+
+      function showPhoto(index) {
+        activePhoto = (index + slides.length) % slides.length;
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('is-active', i === activePhoto);
+          slide.setAttribute('aria-hidden', String(i !== activePhoto));
+        });
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('is-active', i === activePhoto);
+          if (i === activePhoto) dot.setAttribute('aria-current', 'true');
+          else dot.removeAttribute('aria-current');
+        });
+      }
+
+      function startSlider() {
+        clearInterval(sliderTimer);
+        sliderTimer = setInterval(() => showPhoto(activePhoto + 1), 5000);
+      }
+
+      photoSlider.querySelector('.temple-waterfall-prev').addEventListener('click', () => {
+        showPhoto(activePhoto - 1);
+        startSlider();
+      });
+      photoSlider.querySelector('.temple-waterfall-next').addEventListener('click', () => {
+        showPhoto(activePhoto + 1);
+        startSlider();
+      });
+      dots.forEach((dot, i) => dot.addEventListener('click', () => {
+        showPhoto(i);
+        startSlider();
+      }));
+      photoSlider.addEventListener('mouseenter', () => clearInterval(sliderTimer));
+      photoSlider.addEventListener('mouseleave', startSlider);
+      photoSlider.addEventListener('focusin', () => clearInterval(sliderTimer));
+      photoSlider.addEventListener('focusout', startSlider);
+      showPhoto(0);
+      startSlider();
     }
   </script>
 </body>
