@@ -2,8 +2,10 @@ const loginForm = document.getElementById('login-form');
 const priceForm = document.getElementById('price-form');
 const adminStatus = document.getElementById('admin-status');
 const logoutButton = document.getElementById('logout-button');
-const photoManager = document.getElementById('photo-manager');
-const photoItems = [...photoManager.querySelectorAll('[data-photo-id]')];
+const galleryAdmin = document.getElementById('gallery-admin');
+const galleryForm = document.getElementById('gallery-form');
+const galleryList = document.getElementById('gallery-list');
+const galleryCount = document.getElementById('gallery-count');
 const priceInputs = [...priceForm.querySelectorAll('[data-tour-id]')];
 
 let supabaseClient;
@@ -15,22 +17,35 @@ function showStatus(message) {
 function setSignedIn(isSignedIn) {
   loginForm.classList.toggle('admin-hidden', isSignedIn);
   priceForm.classList.toggle('admin-hidden', !isSignedIn);
-  photoManager.classList.toggle('admin-hidden', !isSignedIn);
+  galleryAdmin.classList.toggle('admin-hidden', !isSignedIn);
 }
 
-async function loadPhotoPreviews() {
+async function loadGallery() {
   const { data, error } = await supabaseClient
-    .from('site_images')
-    .select('id, image_url');
-
+    .from('gallery_photos')
+    .select('id, image_url, caption, position')
+    .order('position', { ascending: true });
   if (error) throw error;
 
-  const imageUrls = new Map(data.map((item) => [item.id, item.image_url]));
-  photoItems.forEach((item) => {
-    const imageUrl = imageUrls.get(item.dataset.photoId);
-    const preview = item.querySelector('.admin-photo-preview');
-    if (imageUrl) preview.src = imageUrl;
+  galleryList.replaceChildren();
+  data.forEach((photo) => {
+    const item = document.createElement('li');
+    const image = document.createElement('img');
+    image.src = photo.image_url;
+    image.alt = '';
+    image.loading = 'lazy';
+    const details = document.createElement('span');
+    details.textContent = `${photo.position}. ${photo.caption}`;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.dataset.photoId = photo.id;
+    remove.textContent = 'Hapus';
+    remove.setAttribute('aria-label', `Hapus foto ${photo.caption}`);
+    item.append(image, details, remove);
+    galleryList.append(item);
   });
+  galleryCount.textContent = `${data.length} / 20 foto`;
+  galleryForm.querySelector('button[type="submit"]').disabled = data.length >= 20;
 }
 
 async function loadPrices() {
@@ -68,10 +83,15 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
     if (!session) return;
     setSignedIn(true);
     try {
-      await Promise.all([loadPrices(), loadPhotoPreviews()]);
-      showStatus('Anda sudah masuk. Harga dan foto slide berhasil dimuat.');
+      await loadPrices();
+      showStatus('Anda sudah masuk. Harga tur berhasil dimuat.');
     } catch (error) {
-      showStatus(`Tidak dapat memuat data admin: ${error.message}`);
+      showStatus(`Tidak dapat memuat harga: ${error.message}`);
+    }
+    try {
+      await loadGallery();
+    } catch (error) {
+      showStatus(`Tidak dapat memuat galeri: ${error.message}. Jalankan setup SQL galeri.`);
     }
   }
 
@@ -89,10 +109,15 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
     }
     setSignedIn(true);
     try {
-      await Promise.all([loadPrices(), loadPhotoPreviews()]);
-      showStatus('Berhasil masuk. Harga dan foto slide dapat diperbarui.');
+      await loadPrices();
+      showStatus('Berhasil masuk. Harga tur dapat diperbarui.');
     } catch (loadError) {
       showStatus(`Tidak dapat memuat harga: ${loadError.message}`);
+    }
+    try {
+      await loadGallery();
+    } catch (galleryError) {
+      showStatus(`Tidak dapat memuat galeri: ${galleryError.message}. Jalankan setup SQL galeri.`);
     }
   });
 
@@ -121,65 +146,58 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
       : 'Semua harga berhasil diperbarui.');
   });
 
-  photoItems.forEach((item) => {
-    const fileInput = item.querySelector('[data-photo-file]');
-    const uploadButton = item.querySelector('[data-photo-upload]');
+  galleryForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const imageUrl = document.getElementById('gallery-url').value.trim();
+    const caption = document.getElementById('gallery-caption').value.trim();
+    if (!imageUrl.startsWith('https://')) {
+      showStatus('Gunakan tautan foto yang diawali https://.');
+      return;
+    }
 
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (file && file.type.startsWith('image/')) {
-        item.querySelector('.admin-photo-preview').src = URL.createObjectURL(file);
-      }
-    });
-
-    uploadButton.addEventListener('click', async () => {
-      const file = fileInput.files[0];
-      if (!file) {
-        showStatus('Pilih foto terlebih dahulu dari ponsel Anda.');
-        fileInput.focus();
+    try {
+      const { data, error } = await supabaseClient
+        .from('gallery_photos')
+        .select('position');
+      if (error) throw error;
+      if (data.length >= 20) {
+        showStatus('Galeri sudah mencapai batas 20 foto. Hapus foto terlebih dahulu.');
         return;
       }
-      if (!file.type.startsWith('image/')) {
-        showStatus('File harus berupa gambar.');
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        showStatus('Ukuran gambar maksimal 10 MB.');
-        return;
-      }
+      const usedPositions = new Set(data.map((photo) => photo.position));
+      const position = Array.from({ length: 20 }, (_, index) => index + 1)
+        .find((number) => !usedPositions.has(number));
+      const { error: insertError } = await supabaseClient
+        .from('gallery_photos')
+        .insert({ image_url: imageUrl, caption, position });
+      if (insertError) throw insertError;
+      galleryForm.reset();
+      await loadGallery();
+      showStatus('Foto berhasil ditambahkan ke galeri.');
+    } catch (error) {
+      showStatus(`Gagal menambahkan foto: ${error.message}`);
+    }
+  });
 
-      const photoId = item.dataset.photoId;
-      const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const filePath = `${photoId}/${Date.now()}.${extension}`;
-      uploadButton.disabled = true;
-      showStatus(`Mengunggah foto ${photoId.replace('driver-photo-', '')}…`);
-
-      try {
-        const { error: uploadError } = await supabaseClient.storage
-          .from('site-images')
-          .upload(filePath, file, { cacheControl: '3600', contentType: file.type, upsert: false });
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabaseClient.storage
-          .from('site-images')
-          .getPublicUrl(filePath);
-        const { data, error: updateError } = await supabaseClient
-          .from('site_images')
-          .update({ image_url: publicUrlData.publicUrl })
-          .eq('id', photoId)
-          .select('id');
-        if (updateError) throw updateError;
-        if (!data.length) throw new Error(`Baris ${photoId} tidak ditemukan atau tidak diizinkan diperbarui.`);
-
-        item.querySelector('.admin-photo-preview').src = publicUrlData.publicUrl;
-        fileInput.value = '';
-        showStatus(`Foto slide ${photoId.replace('driver-photo-', '')} berhasil diperbarui.`);
-      } catch (error) {
-        showStatus(`Gagal mengunggah foto: ${error.message}`);
-      } finally {
-        uploadButton.disabled = false;
-      }
-    });
+  galleryList.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-photo-id]');
+    if (!button) return;
+    button.disabled = true;
+    const { error } = await supabaseClient
+      .from('gallery_photos')
+      .delete()
+      .eq('id', button.dataset.photoId);
+    if (error) {
+      button.disabled = false;
+      showStatus(`Gagal menghapus foto: ${error.message}`);
+      return;
+    }
+    try {
+      await loadGallery();
+      showStatus('Foto berhasil dihapus.');
+    } catch (loadError) {
+      showStatus(`Foto terhapus, tetapi daftar gagal dimuat: ${loadError.message}`);
+    }
   });
 
   logoutButton.addEventListener('click', async () => {
