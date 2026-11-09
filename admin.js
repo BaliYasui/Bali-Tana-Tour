@@ -3,6 +3,8 @@ const priceForm = document.getElementById('price-form');
 const adminStatus = document.getElementById('admin-status');
 const logoutButton = document.getElementById('logout-button');
 const galleryAdmin = document.getElementById('gallery-admin');
+const siteImagesAdmin = document.getElementById('site-images-admin');
+const siteImageForms = [...document.querySelectorAll('.admin-site-image')];
 const galleryForm = document.getElementById('gallery-form');
 const galleryList = document.getElementById('gallery-list');
 const galleryCount = document.getElementById('gallery-count');
@@ -18,6 +20,27 @@ function setSignedIn(isSignedIn) {
   loginForm.classList.toggle('admin-hidden', isSignedIn);
   priceForm.classList.toggle('admin-hidden', !isSignedIn);
   galleryAdmin.classList.toggle('admin-hidden', !isSignedIn);
+  siteImagesAdmin.classList.toggle('admin-hidden', !isSignedIn);
+}
+
+async function loadSiteImages() {
+  const { data, error } = await supabaseClient
+    .from('site_images')
+    .select('image_key, image_url');
+  if (error) throw error;
+
+  const images = new Map(data.map((image) => [image.image_key, image.image_url]));
+  siteImageForms.forEach((form) => {
+    const preview = form.querySelector('[data-image-preview]');
+    const imageUrl = images.get(form.dataset.imageKey);
+    if (imageUrl) {
+      preview.src = imageUrl;
+      preview.hidden = false;
+    } else {
+      preview.removeAttribute('src');
+      preview.hidden = true;
+    }
+  });
 }
 
 async function loadGallery() {
@@ -93,6 +116,11 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
     } catch (error) {
       showStatus(`Tidak dapat memuat galeri: ${error.message}. Jalankan setup SQL galeri.`);
     }
+    try {
+      await loadSiteImages();
+    } catch (error) {
+      showStatus(`Tidak dapat memuat foto website: ${error.message}. Periksa setup SQL site_images.`);
+    }
   }
 
   loginForm.addEventListener('submit', async (event) => {
@@ -119,6 +147,11 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
     } catch (galleryError) {
       showStatus(`Tidak dapat memuat galeri: ${galleryError.message}. Jalankan setup SQL galeri.`);
     }
+    try {
+      await loadSiteImages();
+    } catch (imageError) {
+      showStatus(`Tidak dapat memuat foto website: ${imageError.message}. Periksa setup SQL site_images.`);
+    }
   });
 
   priceForm.addEventListener('submit', async (event) => {
@@ -144,6 +177,62 @@ if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUP
     showStatus(errors.length
       ? `Gagal menyimpan sebagian harga: ${errors.map((error) => error.message).join('; ')}`
       : 'Semua harga berhasil diperbarui.');
+  });
+
+  siteImageForms.forEach((form) => {
+    const fileInput = form.querySelector('input[type="file"]');
+    const preview = form.querySelector('[data-image-preview]');
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      preview.src = URL.createObjectURL(file);
+      preview.hidden = false;
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) {
+        showStatus('Pilih foto terlebih dahulu.');
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
+        showStatus('Pilih foto JPG, PNG, atau WebP dengan ukuran maksimal 10 MB.');
+        return;
+      }
+
+      const button = form.querySelector('button[type="submit"]');
+      button.disabled = true;
+      showStatus(`Mengunggah ${form.dataset.imageKey}…`);
+      try {
+        const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
+        const filePath = `${form.dataset.imageKey}/current.${extension}`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from('site-images')
+          .upload(filePath, file, { upsert: true, contentType: file.type, cacheControl: '0' });
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabaseClient.storage.from('site-images').getPublicUrl(filePath);
+        const imageUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+        const { error: saveError } = await supabaseClient
+          .from('site_images')
+          .upsert({
+            image_key: form.dataset.imageKey,
+            image_url: imageUrl,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'image_key' });
+        if (saveError) throw saveError;
+
+        await loadSiteImages();
+        form.reset();
+        showStatus('Foto berhasil diunggah dan disimpan di public.site_images.');
+      } catch (error) {
+        showStatus(`Gagal mengunggah foto: ${error.message}`);
+      } finally {
+        button.disabled = false;
+      }
+    });
   });
 
   galleryForm.addEventListener('submit', async (event) => {
