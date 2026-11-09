@@ -1,6 +1,14 @@
 const header = document.querySelector('.site-header');
 const menuToggle = document.querySelector('.menu-toggle');
 const mainNav = document.querySelector('.main-nav');
+const tripToggle = document.querySelector('.nav-trip-toggle');
+const tripOptions = document.querySelector('.nav-trip-options');
+
+tripToggle.addEventListener('click', () => {
+  const isOpen = tripToggle.getAttribute('aria-expanded') === 'true';
+  tripToggle.setAttribute('aria-expanded', String(!isOpen));
+  tripOptions.classList.toggle('open', !isOpen);
+});
 
 function updateHeader() {
   header.classList.toggle('scrolled', window.scrollY > 28);
@@ -20,21 +28,6 @@ driverObserver.observe(driverIntro);
 const driverSlides = [...document.querySelectorAll('.driver-slide')];
 const driverSlideButtons = [...document.querySelectorAll('.driver-slider-dots button')];
 let activeDriverSlide = driverSlides.findIndex((slide) => slide.classList.contains('is-active'));
-
-async function loadDriverPhotos() {
-  if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase) return;
-  const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  const { data, error } = await client.from('site_images').select('id, image_url');
-  if (error) return;
-
-  const images = new Map(data.map((item) => [item.id, item.image_url]));
-  driverSlides.forEach((slide, index) => {
-    const imageUrl = images.get(`driver-photo-${index + 1}`);
-    if (imageUrl) slide.src = imageUrl;
-  });
-}
-
-loadDriverPhotos();
 
 function showDriverSlide(index) {
   activeDriverSlide = index;
@@ -78,6 +71,8 @@ mainNav.querySelectorAll('a').forEach((link) => {
     menuToggle.setAttribute('aria-label', 'Open navigation');
     mainNav.classList.remove('open');
     header.classList.remove('menu-open');
+    tripToggle.setAttribute('aria-expanded', 'false');
+    tripOptions.classList.remove('open');
   });
 });
 
@@ -85,13 +80,51 @@ document.getElementById('year').textContent = new Date().getFullYear();
 
 const galleryDialog = document.getElementById('lightbox');
 const galleryImage = galleryDialog.querySelector('img');
-document.querySelectorAll('.gallery-item').forEach((item) => {
-  item.addEventListener('click', () => {
-    galleryImage.src = item.dataset.full;
-    galleryImage.alt = item.querySelector('img').alt;
-    galleryDialog.showModal();
-  });
+const galleryGrid = document.querySelector('.gallery-grid');
+galleryGrid.addEventListener('click', (event) => {
+  const item = event.target.closest('.gallery-item');
+  if (!item) return;
+  galleryImage.src = item.dataset.full;
+  galleryImage.alt = item.querySelector('img').alt;
+  galleryDialog.showModal();
 });
+
+async function loadManagedGallery() {
+  if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+  const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  const { data, error } = await client
+    .from('gallery_photos')
+    .select('image_url, caption, position')
+    .order('position', { ascending: true });
+  if (error || !data?.length) return;
+
+  galleryGrid.replaceChildren();
+  data.slice(0, 20).forEach((photo, index) => {
+    const caption = photo.caption || `Bali moments ${index + 1}`;
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'gallery-item';
+    if (index === 0) item.classList.add('gallery-tall');
+    if (index === 2) item.classList.add('gallery-wide');
+    item.dataset.full = photo.image_url;
+    item.setAttribute('aria-label', `View ${caption}`);
+
+    const image = document.createElement('img');
+    image.src = photo.image_url;
+    image.alt = caption;
+    image.loading = 'lazy';
+    const label = document.createElement('span');
+    label.textContent = caption;
+    const arrow = document.createElement('i');
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '↗';
+    label.append(' ', arrow);
+    item.append(image, label);
+    galleryGrid.append(item);
+  });
+}
+
+loadManagedGallery();
 galleryDialog.querySelector('.lightbox-close').addEventListener('click', () => galleryDialog.close());
 galleryDialog.addEventListener('click', (event) => {
   if (event.target === galleryDialog) galleryDialog.close();
@@ -99,9 +132,11 @@ galleryDialog.addEventListener('click', (event) => {
 
 const inquiryForm = document.getElementById('inquiry-form');
 const formStatus = document.getElementById('form-status');
-inquiryForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (!inquiryForm.reportValidity()) return;
-  formStatus.textContent = 'Thanks for sharing your plans. This preview is not connected to an inquiry inbox yet, so your message has not been sent or saved.';
-  formStatus.setAttribute('role', 'status');
-});
+if (inquiryForm && formStatus) {
+  inquiryForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!inquiryForm.reportValidity()) return;
+    formStatus.textContent = 'Thanks for sharing your plans. This preview is not connected to an inquiry inbox yet, so your message has not been sent or saved.';
+    formStatus.setAttribute('role', 'status');
+  });
+}
