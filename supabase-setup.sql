@@ -76,3 +76,62 @@ create policy "Only designated admin can delete gallery photos"
 on public.gallery_photos for delete
 to authenticated
 using (auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid);
+
+-- Tiga slot foto website yang dapat diganti dari halaman admin.
+create table if not exists public.site_images (
+  image_key text primary key check (image_key in ('site-image-1', 'site-image-2', 'site-image-3')),
+  image_url text not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_images enable row level security;
+grant select on public.site_images to anon, authenticated;
+grant insert, update on public.site_images to authenticated;
+
+drop policy if exists "Anyone can read site images" on public.site_images;
+create policy "Anyone can read site images"
+on public.site_images for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "Only designated admin can add site images" on public.site_images;
+create policy "Only designated admin can add site images"
+on public.site_images for insert
+to authenticated
+with check (auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid);
+
+drop policy if exists "Only designated admin can update site images" on public.site_images;
+create policy "Only designated admin can update site images"
+on public.site_images for update
+to authenticated
+using (auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid)
+with check (auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('site-images', 'site-images', true, 10485760, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "Only designated admin can upload site images" on storage.objects;
+create policy "Only designated admin can upload site images"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'site-images'
+  and auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid
+);
+
+drop policy if exists "Only designated admin can update site images" on storage.objects;
+create policy "Only designated admin can update site images"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'site-images'
+  and auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid
+)
+with check (
+  bucket_id = 'site-images'
+  and auth.uid() = '6c5302d6-25f9-4649-baa5-6d3d9159cecd'::uuid
+);
