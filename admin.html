@@ -32,6 +32,15 @@
     .admin-gallery-list img{width:62px;height:48px;object-fit:cover;flex:none}
     .admin-gallery-list span{flex:1;min-width:0;overflow-wrap:anywhere}
     .admin-gallery-list button{border:0;background:#8f3f32;color:#fff;padding:8px 10px;font-size:10px;font-weight:700;cursor:pointer}
+    .admin-site-images{margin-top:34px;padding-top:28px;border-top:1px solid #e8e7df}
+    .admin-site-images h2{font:500 25px/1.2 var(--serif);color:var(--forest);margin:0 0 8px}
+    .admin-site-image-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-top:18px}
+    .admin-site-image{padding:14px;background:var(--cream)}
+    .admin-site-image label{margin-bottom:10px}
+    .admin-site-image input[type=file]{padding:9px;font-size:11px}
+    .admin-site-image-preview{width:100%;height:130px;object-fit:cover;background:#e8e7df;margin:0 0 12px}
+    .admin-site-image-preview[hidden]{display:none}
+    .admin-site-image .button{width:100%;padding:11px;font-size:11px}
     @media(max-width:520px){.admin-gallery-list li{align-items:flex-start;flex-wrap:wrap}.admin-gallery-list span{min-width:calc(100% - 80px)}.admin-gallery-list button{margin-left:74px}}
   </style>
 </head>
@@ -78,6 +87,31 @@
             <button class="button" id="logout-button" type="button">Keluar</button>
           </div>
         </form>
+
+        <section class="admin-site-images admin-hidden" id="site-images-admin" aria-labelledby="site-images-title">
+          <h2 id="site-images-title">Kelola 3 foto Local Bali Driver</h2>
+          <p>Unggah foto untuk mengganti tiga foto Putu Tana di bagian “Local Bali Driver” pada halaman utama. Foto disimpan di tabel <code>public.site_images</code>. Format JPG, PNG, atau WebP; maksimal 10 MB per foto.</p>
+          <div class="admin-site-image-grid">
+            <form class="admin-site-image" data-image-key="driver-photo-1">
+              <label for="site-image-file-1">Foto Local Bali Driver 1</label>
+              <img class="admin-site-image-preview" data-image-preview alt="Pratinjau foto Local Bali Driver 1" hidden>
+              <input id="site-image-file-1" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <button class="button button-green" type="submit">Unggah foto <span>↗</span></button>
+            </form>
+            <form class="admin-site-image" data-image-key="driver-photo-2">
+              <label for="site-image-file-2">Foto Local Bali Driver 2</label>
+              <img class="admin-site-image-preview" data-image-preview alt="Pratinjau foto Local Bali Driver 2" hidden>
+              <input id="site-image-file-2" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <button class="button button-green" type="submit">Unggah foto <span>↗</span></button>
+            </form>
+            <form class="admin-site-image" data-image-key="driver-photo-3">
+              <label for="site-image-file-3">Foto Local Bali Driver 3</label>
+              <img class="admin-site-image-preview" data-image-preview alt="Pratinjau foto Local Bali Driver 3" hidden>
+              <input id="site-image-file-3" type="file" accept="image/jpeg,image/png,image/webp" required>
+              <button class="button button-green" type="submit">Unggah foto <span>↗</span></button>
+            </form>
+          </div>
+        </section>
 
         <section class="admin-gallery admin-hidden" id="gallery-admin" aria-labelledby="gallery-admin-title">
           <h2 id="gallery-admin-title">Kelola foto galeri</h2>
