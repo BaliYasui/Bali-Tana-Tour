@@ -17,6 +17,7 @@ updateHeader();
 window.addEventListener('scroll', updateHeader, { passive: true });
 
 const driverIntro = document.querySelector('.driver-intro');
+driverIntro.after(document.querySelector('.gallery'));
 const driverObserver = new IntersectionObserver((entries, observer) => {
   if (entries[0].isIntersecting) {
     driverIntro.classList.add('is-visible');
@@ -27,6 +28,26 @@ driverObserver.observe(driverIntro);
 
 const driverSlides = [...document.querySelectorAll('.driver-slide')];
 const driverSlideButtons = [...document.querySelectorAll('.driver-slider-dots button')];
+
+async function loadDriverImages() {
+  if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+  try {
+    const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const { data, error } = await client.from('site_images').select('image_key, image_url');
+    if (error || !data) return;
+
+    const imageUrls = new Map(data.map((image) => [image.image_key, image.image_url]));
+    driverSlides.forEach((slide) => {
+      const imageUrl = imageUrls.get(slide.dataset.siteImageKey);
+      if (imageUrl) slide.src = imageUrl;
+    });
+  } catch (error) {
+    // Keep the default photos if managed images cannot be loaded.
+  }
+}
+
+loadDriverImages();
+
 let activeDriverSlide = driverSlides.findIndex((slide) => slide.classList.contains('is-active'));
 
 function showDriverSlide(index) {
