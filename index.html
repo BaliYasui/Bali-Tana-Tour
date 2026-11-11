@@ -29,7 +29,7 @@
       </div>
     </nav>
   </header>
-
+ 
   <main>
     <section class="hero" aria-label="Discover Bali">
       <div class="hero-image" role="img" aria-label="Sunrise over a lush Balinese landscape"></div>
@@ -141,25 +141,45 @@
     <section class="contact section-space" id="contact"><div class="wrap contact-grid"><div class="contact-copy"><span class="eyebrow">Let's make a plan</span><h2>Let's plan your<br /><em>Bali adventure.</em></h2><p>Share what you have in mind and we'll have the details we need to continue the conversation.</p><div class="contact-aside"><span class="contact-aside-icon">✳</span><div><b>WhatsApp</b><p><a href="https://wa.me/628123688091" target="_blank" rel="noopener noreferrer">+62 812-3688-091</a></p><b>Email</b><p><a href="mailto:balitanatour@gmail.com">balitanatour@gmail.com</a></p></div></div>        <div class="contact-guidance">
           <a class="whatsapp-guidance" href="https://wa.me/628123688091?text=Hello%20Bali%20Tana%20Tour%2C%20I%20would%20like%20to%20ask%20about%20booking%20a%20tour%20in%20Bali." target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3a12.7 12.7 0 0 0-10.9 19.2L3.5 29l7-1.8A12.7 12.7 0 1 0 16 3Zm0 23.1c-1.8 0-3.5-.5-5-1.4l-.4-.2-4.1 1.1 1.1-4-.3-.4A10.4 10.4 0 1 1 16 26.1Zm5.7-7.8c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2s-.8 1-.9 1.2-.3.2-.6.1a8.5 8.5 0 0 1-2.5-1.5 9.3 9.3 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-1-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4s-1.1 1.1-1.1 2.6 1.1 3 1.2 3.2c.2.2 2.2 3.4 5.3 4.7.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.6-.1 1.8-.7 2.1-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.3-.6-.4Z"/></svg>
-            <span>Hubungi dengan WhatsApp</span><span aria-hidden="true">↗</span>
+            <span>Contact us on WhatsApp</span><span aria-hidden="true">↗</span>
           </a>
           <p class="contact-or">or</p>
-          <div class="form-direction" aria-label="The Google Form below can be used to send your reservation details">
+          <div class="form-direction" aria-label="Use the reservation form to share your trip details">
             <span class="form-direction-arrow" aria-hidden="true">↓</span>
-            <p><strong>Send your trip details</strong> using the Google Form below.</p>
+            <p><strong>Share your trip details</strong> using the form below.</p>
           </div>
         </div>
       </div>
-      <div class="reservation-column">
-        <div class="reservation-options">
-          <span class="eyebrow">Make a reservation</span>
-          <h3>Choose the option that works best for you</h3>
-
+              <div class="reservation-column">
+          <div class="reservation-options">
+            <span class="eyebrow">Make a reservation</span>
+            <h3>Tell us about your trip</h3>
+            <p>Fill in the details below, then choose whether to send your inquiry by email or WhatsApp.</p>
+          </div>
+          <form class="inquiry-form" id="inquiry-form">
+            <div class="form-row">
+              <label>Full name
+                <input type="text" name="fullName" autocomplete="name" placeholder="Your full name" required>
+              </label>
+              <label>Number of people
+                <input type="number" name="people" min="1" step="1" inputmode="numeric" placeholder="e.g. 2" required>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>Email
+                <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+              </label>
+              <label>WhatsApp number
+                <input type="tel" name="whatsapp" autocomplete="tel" placeholder="Include your country code" required>
+              </label>
+            </div>
+            <label>Message
+              <textarea name="message" rows="5" placeholder="Tell us about your plans, preferred dates, or the tour you are interested in." required></textarea>
+            </label>
+            <button class="button button-gold submit-button" type="submit">Choose how to send <span aria-hidden="true">↗</span></button>
+          </form>
         </div>
-        <div class="google-form-wrap" id="google-reservation-form">
-          <iframe class="google-form-embed" src="https://docs.google.com/forms/d/e/1FAIpQLSdjHH8GC0tmoPpwJl3hLN9zsQliSlSHuCT8N9MMs6xG6iqXmQ/viewform?embedded=true" title="Bali Tana Tour reservation form" loading="lazy">Loading…</iframe>
-        </div>
-      </div></div></section>
+      </div></section>
 
     <section class="reviews-section section-space" id="reviews">
       <div class="wrap">
@@ -180,6 +200,18 @@
     <span>Chat on WhatsApp</span>
   </a>
   <dialog class="lightbox" id="lightbox"><button class="lightbox-close" aria-label="Close image">×</button><img src="" alt="Expanded Bali gallery photograph"></dialog>
+  <dialog class="contact-method-dialog" id="contact-method-dialog" aria-labelledby="contact-method-title">
+    <div class="contact-method-card">
+      <button class="contact-method-close" type="button" aria-label="Close">×</button>
+      <span class="eyebrow">One last step</span>
+      <h2 id="contact-method-title">How would you like to send your inquiry?</h2>
+      <p>Your form details will be included in the message.</p>
+      <div class="contact-method-actions">
+        <a class="button button-green" id="send-by-email" href="#">Send by email <span aria-hidden="true">↗</span></a>
+        <a class="button reservation-whatsapp" id="send-by-whatsapp" href="#" target="_blank" rel="noopener noreferrer">Send with WhatsApp <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </dialog>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="script.js"></script>
