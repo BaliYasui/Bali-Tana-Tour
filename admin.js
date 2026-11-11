@@ -1,316 +1,522 @@
-const loginForm = document.getElementById('login-form');
-const priceForm = document.getElementById('price-form');
-const adminStatus = document.getElementById('admin-status');
-const logoutButton = document.getElementById('logout-button');
-const galleryAdmin = document.getElementById('gallery-admin');
-const siteImagesAdmin = document.getElementById('site-images-admin');
-const siteImageForms = [...document.querySelectorAll('.admin-site-image')];
-const galleryForm = document.getElementById('gallery-form');
-const galleryList = document.getElementById('gallery-list');
-const galleryCount = document.getElementById('gallery-count');
-const priceInputs = [...priceForm.querySelectorAll('[data-tour-id]')];
 
-let supabaseClient;
+// ==========================================
+// BALI TANA TOUR - MAIN SCRIPT
+// ==========================================
 
-function showStatus(message) {
-  adminStatus.textContent = message;
-}
 
-function setSignedIn(isSignedIn) {
-  loginForm.classList.toggle('admin-hidden', isSignedIn);
-  priceForm.classList.toggle('admin-hidden', !isSignedIn);
-  galleryAdmin.classList.toggle('admin-hidden', !isSignedIn);
-  siteImagesAdmin.classList.toggle('admin-hidden', !isSignedIn);
-}
+// 1. HEADER & NAVIGATION
+// ==========================================
 
-async function loadSiteImages() {
-  const { data, error } = await supabaseClient
-    .from('site_images')
-    .select('image_key, image_url');
-  if (error) throw error;
+const header = document.querySelector('.site-header');
+const menuToggle = document.querySelector('.menu-toggle');
+const mainNav = document.querySelector('.main-nav');
+const tripToggle = document.querySelector('.nav-trip-toggle');
+const tripOptions = document.querySelector('.nav-trip-options');
 
-  const images = new Map(data.map((image) => [image.image_key, image.image_url]));
-  siteImageForms.forEach((form) => {
-    const preview = form.querySelector('[data-image-preview]');
-    const imageUrl = images.get(form.dataset.imageKey);
-    if (imageUrl) {
-      preview.src = imageUrl;
-      preview.hidden = false;
-    } else {
-      preview.removeAttribute('src');
-      preview.hidden = true;
-    }
+if (tripToggle && tripOptions) {
+  tripToggle.addEventListener('click', () => {
+    const isOpen = tripToggle.getAttribute('aria-expanded') === 'true';
+
+    tripToggle.setAttribute('aria-expanded', String(!isOpen));
+    tripOptions.classList.toggle('open', !isOpen);
   });
 }
 
-async function loadGallery() {
-  const { data, error } = await supabaseClient
-    .from('gallery_photos')
-    .select('id, image_url, caption, position')
-    .order('position', { ascending: true });
-  if (error) throw error;
-
-  galleryList.replaceChildren();
-  data.forEach((photo) => {
-    const item = document.createElement('li');
-    const image = document.createElement('img');
-    image.src = photo.image_url;
-    image.alt = '';
-    image.loading = 'lazy';
-    const details = document.createElement('span');
-    details.textContent = `${photo.position}. ${photo.caption}`;
-    const remove = document.createElement('button');
-    remove.type = 'button';
-    remove.dataset.photoId = photo.id;
-    remove.textContent = 'Hapus';
-    remove.setAttribute('aria-label', `Hapus foto ${photo.caption}`);
-    item.append(image, details, remove);
-    galleryList.append(item);
-  });
-  galleryCount.textContent = `${data.length} / 20 foto`;
-  galleryForm.querySelector('button[type="submit"]').disabled = data.length >= 20;
-}
-
-async function loadPrices() {
-  const { data, error } = await supabaseClient
-    .from('tour_prices')
-    .select('id, amount_idr');
-
-  if (error) throw error;
-
-  const prices = new Map(data.map((item) => [item.id, item.amount_idr]));
-  const missingTours = [];
-  priceInputs.forEach((input) => {
-    const amount = prices.get(input.dataset.tourId);
-    if (amount === undefined) {
-      input.value = '';
-      missingTours.push(input.dataset.tourId);
-    } else {
-      input.value = amount;
-    }
-  });
-
-  if (missingTours.length) {
-    throw new Error(`Data harga belum tersedia untuk: ${missingTours.join(', ')}. Periksa setup SQL Supabase.`);
+function updateHeader() {
+  if (header) {
+    header.classList.toggle('scrolled', window.scrollY > 28);
   }
 }
 
-if (!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR_') || !window.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY.includes('YOUR_')) {
-  showStatus('Tambahkan Project URL dan anon/public key Supabase di supabase-config.js terlebih dahulu.');
-  loginForm.querySelector('button').disabled = true;
-} else {
-  supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+updateHeader();
+window.addEventListener('scroll', updateHeader, { passive: true });
 
-  async function restoreSession() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session) return;
-    setSignedIn(true);
-    try {
-      await loadPrices();
-      showStatus('Anda sudah masuk. Harga tur berhasil dimuat.');
-    } catch (error) {
-      showStatus(`Tidak dapat memuat harga: ${error.message}`);
-    }
-    try {
-      await loadGallery();
-    } catch (error) {
-      showStatus(`Tidak dapat memuat galeri: ${error.message}. Jalankan setup SQL galeri.`);
-    }
-    try {
-      await loadSiteImages();
-    } catch (error) {
-      showStatus(`Tidak dapat memuat foto website: ${error.message}. Periksa setup SQL site_images.`);
-    }
+
+// 2. DRIVER INTRO ANIMATION
+// ==========================================
+
+const driverIntro = document.querySelector('.driver-intro');
+
+if (driverIntro) {
+  const gallerySection = document.querySelector('.gallery');
+
+  if (gallerySection) {
+    driverIntro.after(gallerySection);
   }
 
-  loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const formData = new FormData(loginForm);
-    showStatus('Memeriksa akun…');
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email: formData.get('email'),
-      password: formData.get('password')
-    });
+  if ('IntersectionObserver' in window) {
+    const driverObserver = new IntersectionObserver(
+      (entries, observer) => {
+        if (entries[0].isIntersecting) {
+          driverIntro.classList.add('is-visible');
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '0px 0px -10% 0px'
+      }
+    );
+
+    driverObserver.observe(driverIntro);
+  } else {
+    driverIntro.classList.add('is-visible');
+  }
+}
+
+
+// 3. DRIVER SLIDER
+// ==========================================
+
+const driverSlides = [
+  ...document.querySelectorAll('.driver-slide')
+];
+
+const driverSlideButtons = [
+  ...document.querySelectorAll('.driver-slider-dots button')
+];
+
+let activeDriverSlide = Math.max(
+  0,
+  driverSlides.findIndex(slide =>
+    slide.classList.contains('is-active')
+  )
+);
+
+
+// 4. LOAD DRIVER IMAGES FROM SUPABASE
+// ==========================================
+
+async function loadDriverImages() {
+
+  if (
+    !window.supabase ||
+    !window.SUPABASE_URL ||
+    !window.SUPABASE_ANON_KEY
+  ) {
+    console.error('Supabase configuration is not available.');
+    return;
+  }
+
+  try {
+
+    const client = window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+
+    const { data, error } = await client
+      .from('site_images')
+      .select('id, image_url');
+
     if (error) {
-      showStatus(`Gagal masuk: ${error.message}`);
-      return;
-    }
-    setSignedIn(true);
-    try {
-      await loadPrices();
-      showStatus('Berhasil masuk. Harga tur dapat diperbarui.');
-    } catch (loadError) {
-      showStatus(`Tidak dapat memuat harga: ${loadError.message}`);
-    }
-    try {
-      await loadGallery();
-    } catch (galleryError) {
-      showStatus(`Tidak dapat memuat galeri: ${galleryError.message}. Jalankan setup SQL galeri.`);
-    }
-    try {
-      await loadSiteImages();
-    } catch (imageError) {
-      showStatus(`Tidak dapat memuat foto website: ${imageError.message}. Periksa setup SQL site_images.`);
-    }
-  });
-
-  priceForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const prices = priceInputs.map((input) => ({
-      id: input.dataset.tourId,
-      amount: Number(input.value)
-    }));
-
-    if (prices.some(({ amount }) => !Number.isSafeInteger(amount) || amount < 0)) {
-      showStatus('Pastikan semua harga Rupiah terisi dengan angka yang valid.');
+      console.error('Failed to load driver images:', error.message);
       return;
     }
 
-    showStatus('Menyimpan semua harga…');
-    const results = await Promise.all(prices.map(({ id, amount }) =>
-      supabaseClient
-        .from('tour_prices')
-        .update({ amount_idr: amount, updated_at: new Date().toISOString() })
-        .eq('id', id)
-    ));
-    const errors = results.map((result) => result.error).filter(Boolean);
-    showStatus(errors.length
-      ? `Gagal menyimpan sebagian harga: ${errors.map((error) => error.message).join('; ')}`
-      : 'Semua harga berhasil diperbarui.');
-  });
+    if (!data || data.length === 0) {
+      console.warn('No driver images found in site_images.');
+      return;
+    }
 
-  siteImageForms.forEach((form) => {
-    const fileInput = form.querySelector('input[type="file"]');
-    const preview = form.querySelector('[data-image-preview]');
+    // Match database ID with HTML data-site-image-key
+    const imageUrls = new Map(
+      data.map(image => [
+        image.id,
+        image.image_url
+      ])
+    );
 
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-      preview.src = URL.createObjectURL(file);
-      preview.hidden = false;
+    driverSlides.forEach(slide => {
+
+      const imageKey = slide.dataset.siteImageKey;
+      const imageUrl = imageUrls.get(imageKey);
+
+      if (imageUrl) {
+
+        // Load the latest image from Supabase
+        slide.src = imageUrl;
+
+        slide.dataset.loadedFromSupabase = 'true';
+
+        console.log(
+          `Driver image loaded: ${imageKey}`
+        );
+
+      } else {
+
+        console.warn(
+          `Driver image not found: ${imageKey}`
+        );
+
+      }
+
     });
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const file = fileInput.files[0];
-      if (!file) {
-        showStatus('Pilih foto terlebih dahulu.');
-        return;
-      }
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
-        showStatus('Pilih foto JPG, PNG, atau WebP dengan ukuran maksimal 10 MB.');
-        return;
+    console.log('Driver images successfully loaded from Supabase.');
+
+  } catch (error) {
+
+    console.error(
+      'Error loading driver images:',
+      error
+    );
+
+  }
+
+}
+
+loadDriverImages();
+
+
+// 5. SHOW DRIVER SLIDE
+// ==========================================
+
+function showDriverSlide(index) {
+
+  if (!driverSlides.length) return;
+
+  activeDriverSlide =
+    (index + driverSlides.length) % driverSlides.length;
+
+  driverSlides.forEach((slide, slideIndex) => {
+
+    const isActive = slideIndex === activeDriverSlide;
+
+    slide.classList.toggle('is-active', isActive);
+
+    slide.setAttribute(
+      'aria-hidden',
+      String(!isActive)
+    );
+
+  });
+
+  driverSlideButtons.forEach((button, buttonIndex) => {
+
+    const isActive = buttonIndex === activeDriverSlide;
+
+    button.classList.toggle('is-active', isActive);
+
+    button.setAttribute(
+      'aria-pressed',
+      String(isActive)
+    );
+
+  });
+
+}
+
+
+// 6. DRIVER SLIDER BUTTONS
+// ==========================================
+
+driverSlideButtons.forEach((button, index) => {
+
+  button.addEventListener('click', () => {
+
+    showDriverSlide(index);
+
+    startDriverSlideTimer();
+
+  });
+
+});
+
+
+// 7. AUTOMATIC DRIVER SLIDER
+// ==========================================
+
+let driverSlideTimer = null;
+
+function startDriverSlideTimer() {
+
+  clearInterval(driverSlideTimer);
+
+  if (
+    driverSlides.length < 2 ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return;
+  }
+
+  driverSlideTimer = setInterval(() => {
+
+    showDriverSlide(
+      (activeDriverSlide + 1) % driverSlides.length
+    );
+
+  }, 4000);
+
+}
+
+startDriverSlideTimer();
+
+
+// 8. MOBILE NAVIGATION
+// ==========================================
+
+if (menuToggle && mainNav && header) {
+
+  menuToggle.addEventListener('click', () => {
+
+    const isOpen =
+      menuToggle.getAttribute('aria-expanded') === 'true';
+
+    menuToggle.setAttribute(
+      'aria-expanded',
+      String(!isOpen)
+    );
+
+    menuToggle.setAttribute(
+      'aria-label',
+      isOpen ? 'Open navigation' : 'Close navigation'
+    );
+
+    mainNav.classList.toggle('open', !isOpen);
+
+    header.classList.toggle('menu-open', !isOpen);
+
+  });
+
+}
+
+
+// 9. CLOSE MOBILE MENU AFTER CLICKING A LINK
+// ==========================================
+
+if (mainNav) {
+
+  mainNav.querySelectorAll('a').forEach(link => {
+
+    link.addEventListener('click', () => {
+
+      if (menuToggle) {
+
+        menuToggle.setAttribute('aria-expanded', 'false');
+
+        menuToggle.setAttribute(
+          'aria-label',
+          'Open navigation'
+        );
+
       }
 
-      const button = form.querySelector('button[type="submit"]');
-      button.disabled = true;
-      showStatus(`Mengunggah ${form.dataset.imageKey}…`);
-      try {
-        const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
-        const filePath = `${form.dataset.imageKey}/current.${extension}`;
-        const { error: uploadError } = await supabaseClient.storage
-          .from('site-images')
-          .upload(filePath, file, { upsert: true, contentType: file.type, cacheControl: '0' });
-        if (uploadError) throw uploadError;
+      mainNav.classList.remove('open');
 
-        const { data: publicUrlData } = supabaseClient.storage.from('site-images').getPublicUrl(filePath);
-        const imageUrl = `${publicUrlData.publicUrl}?v=${Date.now()}`;
-        const { error: saveError } = await supabaseClient
-          .from('site_images')
-          .upsert({
-            image_key: form.dataset.imageKey,
-            image_url: imageUrl,
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'image_key' });
-        if (saveError) throw saveError;
-
-        await loadSiteImages();
-        form.reset();
-        showStatus('Foto berhasil diunggah dan disimpan di public.site_images.');
-      } catch (error) {
-        showStatus(`Gagal mengunggah foto: ${error.message}`);
-      } finally {
-        button.disabled = false;
+      if (header) {
+        header.classList.remove('menu-open');
       }
+
+      if (tripToggle) {
+        tripToggle.setAttribute('aria-expanded', 'false');
+      }
+
+      if (tripOptions) {
+        tripOptions.classList.remove('open');
+      }
+
     });
+
   });
 
-  galleryForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const file = document.getElementById('gallery-file').files[0];
-    const caption = document.getElementById('gallery-caption').value.trim();
-    if (!file) {
-      showStatus('Pilih gambar terlebih dahulu.');
-      return;
-    }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
-      showStatus('Pilih gambar JPG, PNG, atau WebP dengan ukuran maksimal 10 MB.');
-      return;
-    }
+}
 
-    const submitButton = galleryForm.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    try {
-      const { data, error } = await supabaseClient
-        .from('gallery_photos')
-        .select('position');
-      if (error) throw error;
-      if (data.length >= 20) {
-        showStatus('Galeri sudah mencapai batas 20 foto. Hapus foto terlebih dahulu.');
-        return;
-      }
-      const usedPositions = new Set(data.map((photo) => photo.position));
-      const position = Array.from({ length: 20 }, (_, index) => index + 1)
-        .find((number) => !usedPositions.has(number));
-      const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
-      const filePath = `gallery/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-      showStatus('Mengunggah gambar galeri…');
-      const { error: uploadError } = await supabaseClient.storage
-        .from('site-images')
-        .upload(filePath, file, { contentType: file.type, cacheControl: '3600' });
-      if (uploadError) throw uploadError;
 
-      const { data: publicUrlData } = supabaseClient.storage.from('site-images').getPublicUrl(filePath);
-      const { error: insertError } = await supabaseClient
-        .from('gallery_photos')
-        .insert({ image_url: publicUrlData.publicUrl, caption, position });
-      if (insertError) throw insertError;
-      galleryForm.reset();
-      await loadGallery();
-      showStatus('Gambar berhasil diunggah dan ditambahkan ke galeri.');
-    } catch (error) {
-      showStatus(`Gagal mengunggah gambar galeri: ${error.message}`);
-    } finally {
-      submitButton.disabled = false;
-    }
+// 10. AUTOMATIC COPYRIGHT YEAR
+// ==========================================
+
+const yearElement = document.getElementById('year');
+
+if (yearElement) {
+  yearElement.textContent = new Date().getFullYear();
+}
+
+
+// 11. GALLERY LIGHTBOX
+// ==========================================
+
+const galleryDialog = document.getElementById('lightbox');
+
+const galleryImage = galleryDialog
+  ? galleryDialog.querySelector('img')
+  : null;
+
+const galleryGrid = document.querySelector('.gallery-grid');
+
+if (galleryDialog && galleryImage && galleryGrid) {
+
+  galleryGrid.addEventListener('click', event => {
+
+    const item = event.target.closest('.gallery-item');
+
+    if (!item) return;
+
+    galleryImage.src = item.dataset.full;
+
+    const thumbnail = item.querySelector('img');
+
+    galleryImage.alt = thumbnail
+      ? thumbnail.alt
+      : 'Bali gallery photograph';
+
+    galleryDialog.showModal();
+
   });
 
-  galleryList.addEventListener('click', async (event) => {
-    const button = event.target.closest('[data-photo-id]');
-    if (!button) return;
-    button.disabled = true;
-    const { error } = await supabaseClient
+  const closeButton = galleryDialog.querySelector(
+    '.lightbox-close'
+  );
+
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      galleryDialog.close();
+    });
+  }
+
+  galleryDialog.addEventListener('click', event => {
+
+    if (event.target === galleryDialog) {
+      galleryDialog.close();
+    }
+
+  });
+
+}
+
+
+// 12. LOAD GALLERY PHOTOS FROM SUPABASE
+// ==========================================
+
+async function loadManagedGallery() {
+
+  if (
+    !window.supabase ||
+    !window.SUPABASE_URL ||
+    !window.SUPABASE_ANON_KEY ||
+    !galleryGrid
+  ) {
+    console.warn('Gallery or Supabase configuration is unavailable.');
+    return;
+  }
+
+  try {
+
+    const client = window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+
+    const { data, error } = await client
       .from('gallery_photos')
-      .delete()
-      .eq('id', button.dataset.photoId);
+      .select('image_url, caption, position')
+      .order('position', {
+        ascending: true
+      });
+
     if (error) {
-      button.disabled = false;
-      showStatus(`Gagal menghapus foto: ${error.message}`);
+      console.error('Failed to load gallery:', error.message);
       return;
     }
-    try {
-      await loadGallery();
-      showStatus('Foto berhasil dihapus.');
-    } catch (loadError) {
-      showStatus(`Foto terhapus, tetapi daftar gagal dimuat: ${loadError.message}`);
+
+    if (!data || data.length === 0) {
+      console.warn('No managed gallery photos found.');
+      return;
     }
-  });
 
-  logoutButton.addEventListener('click', async () => {
-    const { error } = await supabaseClient.auth.signOut();
-    setSignedIn(false);
-    showStatus(error ? `Gagal keluar: ${error.message}` : 'Anda sudah keluar.');
-  });
+    galleryGrid.replaceChildren();
 
-  restoreSession();
+    data.slice(0, 20).forEach((photo, index) => {
+
+      const caption =
+        photo.caption || `Bali moments ${index + 1}`;
+
+      const item = document.createElement('button');
+
+      item.type = 'button';
+      item.className = 'gallery-item';
+
+      if (index === 0) {
+        item.classList.add('gallery-tall');
+      }
+
+      if (index === 2) {
+        item.classList.add('gallery-wide');
+      }
+
+      item.dataset.full = photo.image_url;
+
+      item.setAttribute(
+        'aria-label',
+        `View ${caption}`
+      );
+
+      const image = document.createElement('img');
+
+      image.src = photo.image_url;
+      image.alt = caption;
+      image.loading = 'lazy';
+
+      const label = document.createElement('span');
+
+      label.textContent = caption;
+
+      const arrow = document.createElement('i');
+
+      arrow.setAttribute('aria-hidden', 'true');
+      arrow.textContent = '↗';
+
+      label.append(' ', arrow);
+
+      item.append(image, label);
+
+      galleryGrid.append(item);
+
+    });
+
+    console.log('Gallery successfully loaded from Supabase.');
+
+  } catch (error) {
+
+    console.error(
+      'Error loading managed gallery:',
+      error
+    );
+
+  }
+
 }
+
+loadManagedGallery();
+
+
+// 13. INQUIRY FORM
+// ==========================================
+
+const inquiryForm = document.getElementById('inquiry-form');
+
+const formStatus = document.getElementById('form-status');
+
+if (inquiryForm && formStatus) {
+
+  inquiryForm.addEventListener('submit', event => {
+
+    event.preventDefault();
+
+    if (!inquiryForm.reportValidity()) {
+      return;
+    }
+
+    formStatus.textContent =
+      'Thanks for sharing your plans. This preview is not connected to an inquiry inbox yet, so your message has not been sent or saved.';
+
+    formStatus.setAttribute('role', 'status');
+
+  });
+
+}
+
+
+// ==========================================
+// END OF BALI TANA TOUR SCRIPT
+// ==========================================
