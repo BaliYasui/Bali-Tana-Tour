@@ -494,41 +494,41 @@ loadManagedGallery();
 // ==========================================
 
 const inquiryForm = document.getElementById('inquiry-form');
-const contactMethodDialog = document.getElementById('contact-method-dialog');
-const emailMethodLink = document.getElementById('send-by-email');
-const whatsappMethodLink = document.getElementById('send-by-whatsapp');
-const closeContactMethod = contactMethodDialog
-  ? contactMethodDialog.querySelector('.contact-method-close')
-  : null;
+const formStatus = document.getElementById('form-status');
 
-if (inquiryForm && contactMethodDialog && emailMethodLink && whatsappMethodLink) {
+if (inquiryForm && formStatus) {
   inquiryForm.addEventListener('submit', event => {
     event.preventDefault();
 
     if (!inquiryForm.reportValidity()) return;
 
     const formData = new FormData(inquiryForm);
-    const message = [
-      'Hello Bali Tana Tour, I would like to ask about booking a tour in Bali.',
+    const name = formData.get('name').trim();
+    const email = formData.get('email').trim();
+    const tour = formData.get('tour');
+    const date = formData.get('date') || 'Flexible';
+    const guests = formData.get('guests') || 'Not specified';
+    const message = formData.get('message').trim() || 'No additional details.';
+    const subject = `Bali Tana Tour inquiry - ${name}`;
+    const body = [
+      'Hello Bali Tana Tour,',
       '',
-      `Full name: ${formData.get('fullName').trim()}`,
-      `Number of people: ${formData.get('people')}`,
-      `Email: ${formData.get('email').trim()}`,
-      `WhatsApp number: ${formData.get('whatsapp').trim()}`,
-      `Message: ${formData.get('message').trim()}`
+      'I would like to ask about a trip with the following details:',
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Tour or experience: ${tour}`,
+      `Preferred date: ${date}`,
+      `Number of guests: ${guests}`,
+      `Trip details or questions: ${message}`
     ].join('\n');
+    const channel = event.submitter?.value || 'email';
 
-    emailMethodLink.href = `mailto:balitanatour@gmail.com?subject=${encodeURIComponent('Bali Tana Tour inquiry')}&body=${encodeURIComponent(message)}`;
-    whatsappMethodLink.href = `https://wa.me/628123688091?text=${encodeURIComponent(message)}`;
-    contactMethodDialog.showModal();
-  });
+    if (channel === 'whatsapp') {
+      window.location.href = `https://wa.me/628123688091?text=${encodeURIComponent(body)}`;
+      return;
+    }
 
-  closeContactMethod?.addEventListener('click', () => {
-    contactMethodDialog.close();
-  });
-
-  contactMethodDialog.addEventListener('click', event => {
-    if (event.target === contactMethodDialog) contactMethodDialog.close();
+    window.location.href = `mailto:balitanatour@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 }
 
