@@ -71,3 +71,15 @@
 .form-direction strong{color:var(--forest)}
 @media(max-width:760px){.reservation-options{padding:20px 17px;margin-bottom:14px}.reservation-options h3{font-size:22px}.reservation-actions{display:grid;grid-template-columns:1fr}.reservation-actions .button{width:100%;justify-content:space-between}.form-direction{padding:12px 13px;margin-bottom:12px}}
 @media(prefers-reduced-motion:reduce){.form-direction-arrow,.whatsapp-guidance{animation:none}}
+
+/* Keep mobile hero controls clear of the scroll prompt. */
+@media(max-width:760px){
+  .hero-slider-controls{
+    left:auto;
+    right:var(--gutter);
+    bottom:18px;
+    transform:none;
+    gap:10px;
+    padding:6px 9px;
+  }
+}
