@@ -65,6 +65,85 @@ if (driverIntro) {
 }
 
 
+
+
+// 3. HERO IMAGE SLIDER
+// ==========================================
+
+const heroImage = document.querySelector('.hero-image');
+const heroSlider = document.querySelector('.hero-slider-controls');
+
+if (heroImage && heroSlider) {
+  const heroSlides = [
+    { src: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjVcUorMNTK4EzysfnTv44MUqMMMu6uqOqq2bcW3VCYPR2DjjjWiYbAvxiYWiXgIkRJjn5G6g86oQLSNnfBydWwDmxr9RIbuzAKP7y5Sqlw5YfSh95cHFf7AhS0ma8igW_t02teu_FJ4RRO7QERGcaKs0d-zjMh4JpUYR3P12jh4TwbibS1Dbn4PnPb9Oc/w426-h640/13716.png", alt: 'Sunrise over a lush Balinese landscape', position: 'center 55%' },
+    { src: "https://images.unsplash.com/photo-1653189381089-c967d5b7c140?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D", alt: 'Bali landscape, featured in the hero slideshow', position: 'center' },
+    { src: "https://images.unsplash.com/photo-1583235891598-53ae16fab99d?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D", alt: 'Bali scenery, featured in the hero slideshow', position: 'center' },
+    { src: "https://images.unsplash.com/photo-1682406187130-84561b4e0e78?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D", alt: 'Bali destination, featured in the hero slideshow', position: 'center' },
+    { src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdq3jGinIUvMvfxaYsCX9md7oKUtCu7F4Kadix3e1dIWmIN2Iyc0A1W6yz&s=10", alt: 'Bali travel scenery, featured in the hero slideshow', position: 'center' }
+  ];
+  const heroDots = [...heroSlider.querySelectorAll('.hero-slider-dots button')];
+  const heroPrevious = heroSlider.querySelector('[data-hero-prev]');
+  const heroNext = heroSlider.querySelector('[data-hero-next]');
+  let activeHeroSlide = 0;
+  let heroTimer = null;
+  let heroSwapTimer = null;
+
+  function setHeroSlide(index) {
+    activeHeroSlide = (index + heroSlides.length) % heroSlides.length;
+    const slide = heroSlides[activeHeroSlide];
+    heroImage.classList.add('is-transitioning');
+    clearTimeout(heroSwapTimer);
+    heroSwapTimer = setTimeout(() => {
+      heroImage.style.backgroundImage =
+        `linear-gradient(90deg,rgba(12,31,23,.72) 0%,rgba(12,31,23,.48) 43%,rgba(12,31,23,.08) 100%),linear-gradient(0deg,rgba(12,31,23,.2),transparent 30%),url("${slide.src}")`;
+      heroImage.style.backgroundPosition = slide.position;
+      heroImage.setAttribute('aria-label', slide.alt);
+      heroDots.forEach((dot, dotIndex) => {
+        const isActive = dotIndex === activeHeroSlide;
+        dot.classList.toggle('is-active', isActive);
+        dot.setAttribute('aria-pressed', String(isActive));
+      });
+      requestAnimationFrame(() => heroImage.classList.remove('is-transitioning'));
+    }, 180);
+  }
+
+  function startHeroTimer() {
+    clearInterval(heroTimer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    heroTimer = setInterval(() => setHeroSlide(activeHeroSlide + 1), 6500);
+  }
+
+  heroPrevious.addEventListener('click', () => {
+    setHeroSlide(activeHeroSlide - 1);
+    startHeroTimer();
+  });
+
+  heroNext.addEventListener('click', () => {
+    setHeroSlide(activeHeroSlide + 1);
+    startHeroTimer();
+  });
+
+  heroDots.forEach((dot, index) => {
+    dot.addEventListener('click', () => {
+      setHeroSlide(index);
+      startHeroTimer();
+    });
+  });
+
+  heroSlider.addEventListener('mouseenter', () => clearInterval(heroTimer));
+  heroSlider.addEventListener('mouseleave', startHeroTimer);
+  heroSlider.addEventListener('focusin', () => clearInterval(heroTimer));
+  heroSlider.addEventListener('focusout', event => {
+    if (!heroSlider.contains(event.relatedTarget)) startHeroTimer();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearInterval(heroTimer);
+    else startHeroTimer();
+  });
+  startHeroTimer();
+}
+
+
 // 3. DRIVER SLIDER
 // ==========================================
 
